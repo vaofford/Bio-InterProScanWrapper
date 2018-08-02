@@ -78,29 +78,37 @@ sub _build__ontology_hash {
 
 sub _extract_ontology_terms {
   my ($self) = @_;
-  my %extracted_ontology_terms;
+
   my $gffio = Bio::Tools::GFF->new(-file => $self->iprscan_file, -gff_version => 3 );
   
   eval {      
 	local $SIG{__WARN__} = sub { @_; };      
 	my $feature = $gffio->next_feature(); 
   };
-   
+  
+  my (%extracted_ontology_terms, %extracted_product_terms);
   if (!$@) {
     while (my $feature = $gffio->next_feature()) {
-      if ( $feature->has_tag('Ontology_term') ) {
-        my @ontology_values = $feature->get_tag_values('Ontology_term');
-        if ( exists $extracted_ontology_terms{ $feature->seq_id  } ) {
-          $extracted_ontology_terms{ $feature->seq_id } = [ @{ $extracted_ontology_terms{ $feature->seq_id} }, @ontology_values ];
-        } else {
-          $extracted_ontology_terms{ $feature->seq_id  } =  \@ontology_values ;
-        }
-      }
+      my @ontology_values = get_ontology_terms($feature);
     }
   }  
 
   my $unique_ontology_terms = $self->_get_unique_ontology_terms(\%extracted_ontology_terms);
   return $unique_ontology_terms;
+}
+
+sub get_ontology_terms {
+  my $feature = $_[0];
+  my @ontology_values;
+  if ( $feature->has_tag('Ontology_term') ) {
+    @ontology_values = $feature->get_tag_values('Ontology_term');
+    if ( exists $extracted_ontology_terms{ $feature->seq_id  } ) {
+      $extracted_ontology_terms{ $feature->seq_id } = [ @{ $extracted_ontology_terms{ $feature->seq_id} }, @ontology_values ];
+    } else {
+      $extracted_ontology_terms{ $feature->seq_id  } =  \@ontology_values ;
+    }
+  }
+  return @ontology_values;
 }
 
 sub _get_unique_ontology_terms {
