@@ -88,7 +88,7 @@ sub _extract_ontology_terms {
   my (%extracted_ontology_terms, %extracted_product_terms);
   if (!$@) {
     while (my $feature = $gffio->next_feature()) {
-      $extracted_ontology_terms{ $feature->seq_id } = get_ontology_terms($feature, $extracted_ontology_terms{ $feature->seq_id });
+      $extracted_ontology_terms{ $feature->seq_id } = get_feature_tag_values($feature, 'Ontology_term', $extracted_ontology_terms{ $feature->seq_id });
     }
   }  
 
@@ -96,19 +96,22 @@ sub _extract_ontology_terms {
   return $unique_ontology_terms;
 }
 
-sub get_ontology_terms {
+sub get_feature_tag_values {
   my $feature = $_[0];
-  my $ontology_values = $_[1];
-  if ( $feature->has_tag('Ontology_term') ) {
-    my @feature_ontology_values = $feature->get_tag_values('Ontology_term');
-     if ( defined $ontology_values) { 
-      $ontology_values = [ @{ $ontology_values }, @feature_ontology_values ];
+  my $tag = $_[1];
+  my $previous_tag_values = $_[2];
+
+  my $merged_tag_values = $previous_tag_values;
+  if ( $feature->has_tag($tag) ) {
+    my @current_tag_values = $feature->get_tag_values($tag);
+     if ( defined $previous_tag_values) { 
+      $merged_tag_values = [ @{ $previous_tag_values }, @current_tag_values ];
     } else {
-      $ontology_values = \@feature_ontology_values;
+      $merged_tag_values = \@current_tag_values;
     }
    }
 
-  return $ontology_values;
+  return $merged_tag_values;
 }
 
 sub _get_unique_ontology_terms {
