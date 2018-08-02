@@ -89,7 +89,7 @@ sub _extract_ontology_terms {
   my (%extracted_ontology_terms, %extracted_product_terms);
   if (!$@) {
     while (my $feature = $gffio->next_feature()) {
-      my @ontology_values = get_ontology_terms($feature);
+      my %extracted_ontology_terms = get_ontology_terms($feature);
     }
   }  
 
@@ -99,6 +99,7 @@ sub _extract_ontology_terms {
 
 sub get_ontology_terms {
   my $feature = $_[0];
+  my %extracted_ontology_terms;
   my @ontology_values;
   if ( $feature->has_tag('Ontology_term') ) {
     @ontology_values = $feature->get_tag_values('Ontology_term');
@@ -108,7 +109,7 @@ sub get_ontology_terms {
       $extracted_ontology_terms{ $feature->seq_id  } =  \@ontology_values ;
     }
   }
-  return @ontology_values;
+  return %extracted_ontology_terms;
 }
 
 sub _get_unique_ontology_terms {
