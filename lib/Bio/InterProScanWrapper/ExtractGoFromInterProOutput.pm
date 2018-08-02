@@ -54,14 +54,6 @@ sub _build__summary_fh {
   return $fh;
 }
 
-#sub _build__graph_obj {
-#  my ($self) = @_;
-#  my $parser = new GO::Parser({handler=>'obj'});
-#  $parser->parse($self->ontology_database);
-#  my $graph = $parser->handler->graph;
-#  return $graph;
-#}
-
 sub _build__ontology_hash {
   my ($self) = @_;
   
@@ -148,16 +140,7 @@ sub _count_go_term_occurence {
         if ( exists $self->_ontology_hash->{$go_id} ) {
           $ontology_counts{$go_id}->{'go_name'} = $self->{_ontology_hash}->{$go_id}->{'go_name'};
           $ontology_counts{$go_id}->{'go_namespace'} = $self->{_ontology_hash}->{$go_id}->{'go_namespace'};
-        } 
-#        my $term = $self->_graph_obj->get_term($go_id);
-#        eval {
-#          $ontology_counts{$go_id}->{'name'} = $term->name;
-#          $ontology_counts{$go_id}->{'namespace'} = $term->namespace;
-#        };
-#        if( !$@ ) {
-#          $ontology_counts{$go_id}->{'name'} = $term->name;
-#          $ontology_counts{$go_id}->{'namespace'} = $term->namespace;
-#        }        
+        }      
       }
     }
   }
