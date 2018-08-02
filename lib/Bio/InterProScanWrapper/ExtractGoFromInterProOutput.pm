@@ -28,7 +28,6 @@ has 'output_filename'   => ( is => 'ro', isa => 'Str',       default => 'iprscan
 has 'summary_filename'  => ( is => 'ro', isa => 'Str',       default => 'iprscan_results.gff.go.summary.tsv' );
 has 'gff_filename'      => ( is => 'ro', isa => 'Str|Undef' );
 has 'ontology_database' => ( is => 'ro', isa => 'Str',              lazy => 1, default => $ENV{'GO_OBO'} );
-#has '_graph_obj'        => ( is => 'ro', isa => 'GO::Model::Graph', lazy => 1, builder => '_build__graph_obj' );
 has '_output_fh'	=> ( is => 'ro', lazy => 1, builder => '_build__output_fh');	
 has '_summary_fh'       => ( is => 'ro', lazy => 1, builder => '_build__summary_fh' );
 has '_gff_obj'          => ( is => 'ro', lazy => 1, builder => '_build__gff_obj' );
@@ -89,7 +88,7 @@ sub _extract_ontology_terms {
   my (%extracted_ontology_terms, %extracted_product_terms);
   if (!$@) {
     while (my $feature = $gffio->next_feature()) {
-      my %extracted_ontology_terms = get_ontology_terms($feature);
+      $extracted_ontology_terms{ $feature->seq_id } = get_ontology_terms($feature, $extracted_ontology_terms{ $feature->seq_id });
     }
   }  
 
@@ -99,17 +98,17 @@ sub _extract_ontology_terms {
 
 sub get_ontology_terms {
   my $feature = $_[0];
-  my %extracted_ontology_terms;
-  my @ontology_values;
+  my $ontology_values = $_[1];
   if ( $feature->has_tag('Ontology_term') ) {
-    @ontology_values = $feature->get_tag_values('Ontology_term');
-    if ( exists $extracted_ontology_terms{ $feature->seq_id  } ) {
-      $extracted_ontology_terms{ $feature->seq_id } = [ @{ $extracted_ontology_terms{ $feature->seq_id} }, @ontology_values ];
+    my @feature_ontology_values = $feature->get_tag_values('Ontology_term');
+     if ( defined $ontology_values) { 
+      $ontology_values = [ @{ $ontology_values }, @feature_ontology_values ];
     } else {
-      $extracted_ontology_terms{ $feature->seq_id  } =  \@ontology_values ;
+      $ontology_values = \@feature_ontology_values;
     }
-  }
-  return %extracted_ontology_terms;
+   }
+
+  return $ontology_values;
 }
 
 sub _get_unique_ontology_terms {
